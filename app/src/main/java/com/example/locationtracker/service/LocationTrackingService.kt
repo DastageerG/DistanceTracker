@@ -23,6 +23,7 @@ import com.example.locationtracker.utils.Constants.NOTIFICATION_CHANNEL_ID
 import com.example.locationtracker.utils.Constants.NOTIFICATION_CHANNEL_NAME
 import com.example.locationtracker.utils.Constants.NOTIFICATION_ID
 import com.example.locationtracker.utils.Constants.TAG
+import com.example.locationtracker.utils.MapUtil
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,7 +47,6 @@ class LocationTrackingService : LifecycleService()
         val locationList = MutableLiveData<MutableList<LatLng>>()
         val startTime = MutableLiveData<Long>()
         val stopTime = MutableLiveData<Long>()
-
     }
 
     fun initialValues()
@@ -69,11 +69,22 @@ class LocationTrackingService : LifecycleService()
                 for(location in locations)
                 {
                     updateLocationList(location)
+                    updateNotification()
                 }
             }
         } // onLocationResult closed
 
     } // locationCallBack closed
+
+    private fun updateNotification()
+    {
+        notification.apply ()
+        {
+            setContentTitle("Distance Traveled")
+            setContentText(locationList.value?.let { MapUtil.calculateDistance(it)}+ "km")
+        } // apply closed
+        notificationManager.notify(Constants.NOTIFICATION_ID,notification.build())
+    } // updateNotification closed
 
     override fun onCreate()
     {

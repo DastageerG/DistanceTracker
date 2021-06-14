@@ -7,7 +7,9 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.locationtracker.databinding.ActivityMainBinding
 import com.example.locationtracker.utils.Permissions
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity()
 {
     lateinit var binding: ActivityMainBinding

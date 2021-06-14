@@ -2,12 +2,15 @@ package com.example.locationtracker.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.Color.red
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,12 +18,19 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.locationtracker.MainActivity
 import com.example.locationtracker.R
 import com.example.locationtracker.databinding.FragmentMapsBinding
 import com.example.locationtracker.databinding.FragmentPermissionBinding
+import com.example.locationtracker.service.LocationTrackingService
+import com.example.locationtracker.utils.Constants
+import com.example.locationtracker.utils.Constants.ACTION_SERVICE_STOP
+import com.example.locationtracker.utils.Constants.TAG
 import com.example.locationtracker.utils.ExtensionFunction.disable
+import com.example.locationtracker.utils.ExtensionFunction.enable
 import com.example.locationtracker.utils.ExtensionFunction.hide
 import com.example.locationtracker.utils.ExtensionFunction.show
+import com.example.locationtracker.utils.MapUtil
 import com.example.locationtracker.utils.Permissions
 import com.example.locationtracker.utils.Permissions.hasBackgroundLocationPermission
 import com.example.locationtracker.utils.Permissions.requestBackgroundLocationPermission
@@ -29,8 +39,8 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.AppSettingsDialog
@@ -41,8 +51,14 @@ class MapsFragment : Fragment() , OnMapReadyCallback , GoogleMap.OnMyLocationBut
 
     private lateinit var googleMap: GoogleMap
 
-    var _binding: FragmentMapsBinding? = null
-    val binding: FragmentMapsBinding get() = _binding!!
+    private var _binding: FragmentMapsBinding? = null
+    private val binding: FragmentMapsBinding get() = _binding!!
+    private var locationList = mutableListOf<LatLng>()
+
+    private var startTime = 0L
+    private var stopTime = 0L
+
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?):View
     {
@@ -57,12 +73,17 @@ class MapsFragment : Fragment() , OnMapReadyCallback , GoogleMap.OnMyLocationBut
             }
             buttonMapsFragStop.setOnClickListener()
             {
-            }
+                sendActionCommandToService(ACTION_SERVICE_STOP)
+                binding.buttonMapsFragStop.hide()
+                binding.buttonMapsFragStart.show()
+            } //
             buttonMapsFragReset.setOnClickListener()
             {
 
             }
         }
+
+        observeTrackerService()
 
         return binding.root
 
@@ -88,8 +109,7 @@ class MapsFragment : Fragment() , OnMapReadyCallback , GoogleMap.OnMyLocationBut
     private fun startCountdown()
     {
         binding.texViewMapsFragCountDown.show()
-        binding.buttonMapsFragStop.display
-
+        binding.buttonMapsFragStop.disable()
         val timer:CountDownTimer = object :CountDownTimer(4000,1000)
         {
             override fun onTick(millisUntilFinished: Long)
@@ -109,6 +129,7 @@ class MapsFragment : Fragment() , OnMapReadyCallback , GoogleMap.OnMyLocationBut
 
             override fun onFinish()
             {
+                sendActionCommandToService(Constants.ACTION_SERVICE_START)
                 binding.texViewMapsFragCountDown.hide()
             } // onFinish closed
         } // timer closed
@@ -117,11 +138,87 @@ class MapsFragment : Fragment() , OnMapReadyCallback , GoogleMap.OnMyLocationBut
 
     } // startCountdown closed
 
+    fun sendActionCommandToService(action:String)
+    {
+        Intent(requireContext(),LocationTrackingService::class.java).apply()
+        {
+            this.action = action
+            requireContext().startService(this)
+        }
+    }
+
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?)
     {
         super.onViewCreated(view, savedInstanceState)
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+    }
+
+   private fun observeTrackerService()
+    {
+        LocationTrackingService.locationList.observe(viewLifecycleOwner)
+        {
+            it?.let()
+            {
+                locationList = it
+                if(locationList.size > 1)
+                    binding.buttonMapsFragStop.enable()
+                drawPolyLine()
+                followPolyLine()
+            } // let closed
+        } // observer closed
+
+        LocationTrackingService.startTime.observe(viewLifecycleOwner)
+        {
+            startTime = it
+        } // startTimeObserver closed
+
+        LocationTrackingService.stopTime.observe(viewLifecycleOwner)
+        {
+            stopTime = it
+            if(stopTime !=0L)
+            {
+                showBiggerPicture();
+            }
+        } // startTimeObserver closed
+
+
+    } // observerTrackerService closed
+
+    private fun showBiggerPicture()
+    {
+        val bounds = LatLngBounds.builder()
+        for(location in locationList)
+        {
+            bounds.include(location)
+        } // for closed
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(),100),2000,null)
+
+    }
+
+    fun drawPolyLine()
+    {
+        val polyline = googleMap.addPolyline(
+            PolylineOptions().apply()
+            {
+                width(10f)
+                color(Color.BLUE)
+                jointType(JointType.ROUND)
+                startCap(ButtCap())
+                endCap(ButtCap())
+                addAll(locationList)
+            } // apply closed
+        ) // addPolyLine closed
+    } // drawPolyLine closed
+
+    fun followPolyLine()
+    {
+        if (locationList.isNotEmpty())
+        {
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(MapUtil.setCameraPosition(locationList.last())),1000,null)
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -176,6 +273,8 @@ class MapsFragment : Fragment() , OnMapReadyCallback , GoogleMap.OnMyLocationBut
             requestBackgroundLocationPermission(this)
         } // else closed
     } //  onPermissionsDenied
+
+
 
 
 } // MapsFragment closed

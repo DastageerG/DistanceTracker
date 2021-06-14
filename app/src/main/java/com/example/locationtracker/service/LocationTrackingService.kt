@@ -39,6 +39,7 @@ class LocationTrackingService : LifecycleService()
     @Inject
     lateinit var notificationManager:NotificationManager
 
+    @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     companion object
@@ -90,7 +91,6 @@ class LocationTrackingService : LifecycleService()
     {
         super.onCreate()
         initialValues()
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
     } // onCreate closed
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int

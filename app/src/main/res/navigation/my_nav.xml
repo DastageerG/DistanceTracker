@@ -24,10 +24,10 @@
         android:label="fragment_maps"
         tools:layout="@layout/fragment_maps" >
         <action
-            android:id="@+id/action_mapsFragment_to_permissionFragment"
-            app:destination="@id/permissionFragment" />
+            android:id="@+id/action_mapsFragment_to_resultFragment"
+            app:destination="@id/resultFragment" />
     </fragment>
-    <fragment
+    <dialog
         android:id="@+id/resultFragment"
         android:name="com.example.locationtracker.ui.ResultFragment"
         android:label="fragment_result"
@@ -35,5 +35,8 @@
         <action
             android:id="@+id/action_resultFragment_to_mapsFragment"
             app:destination="@id/mapsFragment" />
-    </fragment>
+        <argument
+            android:name="result"
+            app:argType="com.example.locationtracker.data.Result" />
+    </dialog>
 </navigation>

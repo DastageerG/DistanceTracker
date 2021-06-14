@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+>
+
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:context=".ui.MapsFragment" />
+
+    <TextView
+        android:id="@+id/textViewTapOnMyLocationButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Tap on MyLocation button"
+        android:layout_marginBottom="4dp"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.536" />
+
+        <TextView
+            android:id="@+id/texViewMapsFragCountDown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="70sp"
+            android:textStyle="bold"
+            android:text="3"
+            android:visibility="gone"
+            android:layout_centerInParent="true"
+            android:textColor="@color/colorRed"
+            android:layout_marginTop="4dp"
+            />
+
+    <Button
+        android:id="@+id/buttonMapsFragStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginEnd="67dp"
+        android:layout_marginBottom="80dp"
+        android:text="@string/start"
+        android:visibility="invisible" />
+
+    <Button
+        android:id="@+id/buttonMapsFragStop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="80dp"
+        android:text="@string/stop"
+        app:backgroundTint="@color/colorRed"
+        android:visibility="invisible" />
+
+    <Button
+        android:id="@+id/buttonMapsFragReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="80dp"
+        android:text="@string/reset"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorOrange"
+        app:icon="@drawable/ic_baseline_reset_24" />
+
+
+</RelativeLayout>
